@@ -1,0 +1,93 @@
+services:
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minisource-scheduler-dev
+    ports:
+      - "5003:5003"
+    environment:
+      - SERVER_PORT=5003
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=scheduler
+      - POSTGRES_PASSWORD=scheduler_password
+      - POSTGRES_DB=scheduler
+      - POSTGRES_SSL_MODE=disable
+      - POSTGRES_LOG_LEVEL=info
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SCHEDULER_WORKER_COUNT=5
+      - SCHEDULER_MAX_RETRIES=3
+      - SCHEDULER_RETRY_DELAY_SECONDS=30
+      - SCHEDULER_LOCK_TTL_SECONDS=60
+      - SCHEDULER_HEARTBEAT_SECONDS=15
+      - SCHEDULER_CLEANUP_DAYS=7
+      - SCHEDULER_TIMEZONE=UTC
+      - TRACING_ENABLED=true
+      - TRACING_ENDPOINT=http://jaeger:4318/v1/traces
+      - TRACING_SERVICE_NAME=scheduler-dev
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - scheduler-dev-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: scheduler-postgres-dev
+    environment:
+      - POSTGRES_USER=scheduler
+      - POSTGRES_PASSWORD=scheduler_password
+      - POSTGRES_DB=scheduler
+    volumes:
+      - scheduler-postgres-dev-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler -d scheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scheduler-dev-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: scheduler-redis-dev
+    command: redis-server --appendonly yes
+    volumes:
+      - scheduler-redis-dev-data:/data
+    ports:
+      - "6382:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scheduler-dev-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: scheduler-jaeger-dev
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    networks:
+      - scheduler-dev-network
+
+volumes:
+  scheduler-postgres-dev-data:
+  scheduler-redis-dev-data:
+
+networks:
+  scheduler-dev-network:
+    driver: bridge
