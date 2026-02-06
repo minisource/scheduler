@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o scheduler ./cmd/main.go
 
 # Final stage
-FROM alpine:3.19
+FROM alpine:3.23
 
 WORKDIR /app
 
