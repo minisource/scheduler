@@ -5,6 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/minisource/go-common/response"
+	_ "github.com/minisource/scheduler/internal/models"
 	"github.com/minisource/scheduler/internal/service"
 )
 
@@ -27,25 +29,25 @@ func NewHistoryHandler(historyService *service.HistoryService) *HistoryHandler {
 // @Produce json
 // @Param job_id path string true "Job ID"
 // @Param days query int false "Number of days" default(30)
-// @Success 200 {object} Response
-// @Failure 400 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{job_id}/history [get]
 func (h *HistoryHandler) GetByJob(c *fiber.Ctx) error {
 	jobIDStr := c.Params("job_id")
 	jobID, err := uuid.Parse(jobIDStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	days := c.QueryInt("days", 30)
 
 	history, err := h.historyService.GetByJobID(c.Context(), jobID, days)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, history)
+	return response.OK(c, history)
 }
 
 // GetAggregated retrieves aggregated history stats
@@ -56,8 +58,8 @@ func (h *HistoryHandler) GetByJob(c *fiber.Ctx) error {
 // @Param job_id query string false "Filter by job ID"
 // @Param start_date query string false "Start date (YYYY-MM-DD)"
 // @Param end_date query string false "End date (YYYY-MM-DD)"
-// @Success 200 {object} Response{data=models.AggregatedHistoryStats}
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.AggregatedHistoryStats}
+// @Failure 500 {object} response.Response
 // @Router /api/v1/history/stats [get]
 func (h *HistoryHandler) GetAggregated(c *fiber.Ctx) error {
 	var jobID *uuid.UUID
@@ -87,10 +89,10 @@ func (h *HistoryHandler) GetAggregated(c *fiber.Ctx) error {
 
 	stats, err := h.historyService.GetAggregated(c.Context(), jobID, startDate, endDate)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, stats)
+	return response.OK(c, stats)
 }
 
 // GetDateRange retrieves history for a date range
@@ -100,32 +102,32 @@ func (h *HistoryHandler) GetAggregated(c *fiber.Ctx) error {
 // @Produce json
 // @Param start_date query string true "Start date (YYYY-MM-DD)"
 // @Param end_date query string true "End date (YYYY-MM-DD)"
-// @Success 200 {object} Response
-// @Failure 400 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/history [get]
 func (h *HistoryHandler) GetDateRange(c *fiber.Ctx) error {
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
 
 	if startDateStr == "" || endDateStr == "" {
-		return BadRequest(c, "start_date and end_date are required")
+		return response.BadRequest(c, "BAD_REQUEST", "start_date and end_date are required")
 	}
 
 	startDate, err := time.Parse("2006-01-02", startDateStr)
 	if err != nil {
-		return BadRequest(c, "Invalid start_date format (use YYYY-MM-DD)")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid start_date format (use YYYY-MM-DD)")
 	}
 
 	endDate, err := time.Parse("2006-01-02", endDateStr)
 	if err != nil {
-		return BadRequest(c, "Invalid end_date format (use YYYY-MM-DD)")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid end_date format (use YYYY-MM-DD)")
 	}
 
 	history, err := h.historyService.GetByDateRange(c.Context(), startDate, endDate)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, history)
+	return response.OK(c, history)
 }

@@ -82,8 +82,8 @@ type JobExecution struct {
 	ScheduledAt time.Time       `json:"scheduled_at" gorm:"not null;index:idx_executions_scheduled"`
 	StartedAt   *time.Time      `json:"started_at,omitempty"`
 	CompletedAt *time.Time      `json:"completed_at,omitempty"`
-	Duration    *int64          `json:"duration_ms,omitempty"`       // Duration in milliseconds
-	Attempt     int             `json:"attempt" gorm:"default:1"`    // Current attempt number
+	Duration    *int64          `json:"duration_ms,omitempty"`                        // Duration in milliseconds
+	Attempt     int             `json:"attempt" gorm:"default:1"`                     // Current attempt number
 	WorkerID    string          `json:"worker_id,omitempty" gorm:"type:varchar(100)"` // ID of worker executing
 	Request     json.RawMessage `json:"request,omitempty" gorm:"type:jsonb"`          // Request sent
 	Response    json.RawMessage `json:"response,omitempty" gorm:"type:jsonb"`         // Response received
@@ -199,16 +199,16 @@ type ExecutionFilter struct {
 
 // JobStats represents job statistics
 type JobStats struct {
-	TotalJobs      int64            `json:"total_jobs"`
-	ActiveJobs     int64            `json:"active_jobs"`
-	PausedJobs     int64            `json:"paused_jobs"`
-	TotalRuns      int64            `json:"total_runs"`
-	SuccessRate    float64          `json:"success_rate"`
-	AvgDuration    float64          `json:"avg_duration_ms"`
-	JobsByType     map[JobType]int64 `json:"jobs_by_type"`
-	JobsByStatus   map[JobStatus]int64 `json:"jobs_by_status"`
-	RunsToday      int64            `json:"runs_today"`
-	FailuresToday  int64            `json:"failures_today"`
+	TotalJobs     int64               `json:"total_jobs"`
+	ActiveJobs    int64               `json:"active_jobs"`
+	PausedJobs    int64               `json:"paused_jobs"`
+	TotalRuns     int64               `json:"total_runs"`
+	SuccessRate   float64             `json:"success_rate"`
+	AvgDuration   float64             `json:"avg_duration_ms"`
+	JobsByType    map[JobType]int64   `json:"jobs_by_type"`
+	JobsByStatus  map[JobStatus]int64 `json:"jobs_by_status"`
+	RunsToday     int64               `json:"runs_today"`
+	FailuresToday int64               `json:"failures_today"`
 }
 
 // JobListResult represents paginated job results
@@ -228,6 +228,7 @@ type ExecutionListResult struct {
 	PageSize   int            `json:"page_size"`
 	HasMore    bool           `json:"has_more"`
 }
+
 // AggregatedHistoryStats contains aggregated statistics
 type AggregatedHistoryStats struct {
 	TotalSuccess  int64   `json:"total_success"`

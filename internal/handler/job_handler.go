@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/minisource/go-common/response"
 	"github.com/minisource/scheduler/internal/models"
 	"github.com/minisource/scheduler/internal/service"
 )
@@ -26,14 +27,14 @@ func NewJobHandler(jobService *service.JobService) *JobHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreateJobRequest true "Job creation request"
-// @Success 201 {object} Response{data=models.Job}
-// @Failure 400 {object} Response
-// @Failure 500 {object} Response
+// @Success 201 {object} response.Response{data=models.Job}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs [post]
 func (h *JobHandler) Create(c *fiber.Ctx) error {
 	var req models.CreateJobRequest
 	if err := c.BodyParser(&req); err != nil {
-		return BadRequest(c, "Invalid request body")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid request body")
 	}
 
 	// Get tenant ID from context
@@ -41,10 +42,10 @@ func (h *JobHandler) Create(c *fiber.Ctx) error {
 
 	job, err := h.jobService.Create(c.Context(), tenantID, &req)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Created(c, job)
+	return response.Created(c, job)
 }
 
 // Get retrieves a job by ID
@@ -53,25 +54,25 @@ func (h *JobHandler) Create(c *fiber.Ctx) error {
 // @Tags jobs
 // @Produce json
 // @Param id path string true "Job ID"
-// @Success 200 {object} Response{data=models.Job}
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.Job}
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id} [get]
 func (h *JobHandler) Get(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	tenantID := getTenantID(c)
 
 	job, err := h.jobService.GetByID(c.Context(), tenantID, id)
 	if err != nil {
-		return NotFound(c, "Job not found")
+		return response.NotFound(c, "Job not found")
 	}
 
-	return Success(c, job)
+	return response.OK(c, job)
 }
 
 // List lists jobs with filtering
@@ -84,8 +85,8 @@ func (h *JobHandler) Get(c *fiber.Ctx) error {
 // @Param name query string false "Filter by name"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
-// @Success 200 {object} Response{data=[]models.Job}
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=[]models.Job}
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs [get]
 func (h *JobHandler) List(c *fiber.Ctx) error {
 	tenantID := getTenantID(c)
@@ -101,14 +102,14 @@ func (h *JobHandler) List(c *fiber.Ctx) error {
 
 	result, err := h.jobService.List(c.Context(), filter)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return SuccessWithMeta(c, result.Jobs, &Meta{
-		Page:       result.Page,
-		PageSize:   result.PageSize,
-		TotalCount: result.TotalCount,
-		HasMore:    result.HasMore,
+	return response.OKWithPagination(c, result.Jobs, &response.Pagination{
+		Page:    result.Page,
+		PerPage: result.PageSize,
+		Total:   result.TotalCount,
+		HasNext: result.HasMore,
 	})
 }
 
@@ -120,31 +121,31 @@ func (h *JobHandler) List(c *fiber.Ctx) error {
 // @Produce json
 // @Param id path string true "Job ID"
 // @Param request body models.UpdateJobRequest true "Job update request"
-// @Success 200 {object} Response{data=models.Job}
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.Job}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id} [put]
 func (h *JobHandler) Update(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	var req models.UpdateJobRequest
 	if err := c.BodyParser(&req); err != nil {
-		return BadRequest(c, "Invalid request body")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid request body")
 	}
 
 	tenantID := getTenantID(c)
 
 	job, err := h.jobService.Update(c.Context(), tenantID, id, &req)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, job)
+	return response.OK(c, job)
 }
 
 // Delete deletes a job
@@ -153,24 +154,24 @@ func (h *JobHandler) Update(c *fiber.Ctx) error {
 // @Tags jobs
 // @Param id path string true "Job ID"
 // @Success 204 "No Content"
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id} [delete]
 func (h *JobHandler) Delete(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	tenantID := getTenantID(c)
 
 	if err := h.jobService.Delete(c.Context(), tenantID, id); err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return NoContent(c)
+	return response.NoContent(c)
 }
 
 // Trigger manually triggers a job
@@ -178,26 +179,26 @@ func (h *JobHandler) Delete(c *fiber.Ctx) error {
 // @Description Manually trigger a job execution
 // @Tags jobs
 // @Param id path string true "Job ID"
-// @Success 200 {object} Response{data=models.JobExecution}
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.JobExecution}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id}/trigger [post]
 func (h *JobHandler) Trigger(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	tenantID := getTenantID(c)
 
 	execution, err := h.jobService.Trigger(c.Context(), tenantID, id)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, execution)
+	return response.OK(c, execution)
 }
 
 // Pause pauses a job
@@ -205,26 +206,26 @@ func (h *JobHandler) Trigger(c *fiber.Ctx) error {
 // @Description Pause a job from executing
 // @Tags jobs
 // @Param id path string true "Job ID"
-// @Success 200 {object} Response{data=models.Job}
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.Job}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id}/pause [post]
 func (h *JobHandler) Pause(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	tenantID := getTenantID(c)
 
 	job, err := h.jobService.UpdateStatus(c.Context(), tenantID, id, models.JobStatusPaused)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, job)
+	return response.OK(c, job)
 }
 
 // Resume resumes a paused job
@@ -232,26 +233,26 @@ func (h *JobHandler) Pause(c *fiber.Ctx) error {
 // @Description Resume a paused job
 // @Tags jobs
 // @Param id path string true "Job ID"
-// @Success 200 {object} Response{data=models.Job}
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.Job}
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{id}/resume [post]
 func (h *JobHandler) Resume(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	tenantID := getTenantID(c)
 
 	job, err := h.jobService.UpdateStatus(c.Context(), tenantID, id, models.JobStatusActive)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, job)
+	return response.OK(c, job)
 }
 
 // GetStats retrieves job statistics
@@ -259,18 +260,18 @@ func (h *JobHandler) Resume(c *fiber.Ctx) error {
 // @Description Get statistics about jobs
 // @Tags jobs
 // @Produce json
-// @Success 200 {object} Response{data=models.JobStats}
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.JobStats}
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/stats [get]
 func (h *JobHandler) GetStats(c *fiber.Ctx) error {
 	tenantID := getTenantID(c)
 
 	stats, err := h.jobService.GetStats(c.Context(), &tenantID)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, stats)
+	return response.OK(c, stats)
 }
 
 // getTenantID extracts the tenant ID from context

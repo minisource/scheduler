@@ -33,7 +33,7 @@ func NewWorkerPool(workers int, fn WorkerFunc) *WorkerPool {
 	if workers < 1 {
 		workers = 1
 	}
-	
+
 	return &WorkerPool{
 		workers:    workers,
 		workerFunc: fn,
@@ -48,7 +48,7 @@ func (p *WorkerPool) Start(ctx context.Context) {
 		p.mu.Unlock()
 		return
 	}
-	
+
 	p.ctx, p.cancel = context.WithCancel(ctx)
 	p.running = true
 	p.mu.Unlock()

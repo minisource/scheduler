@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/minisource/go-common/response"
 	"github.com/minisource/scheduler/internal/models"
 	"github.com/minisource/scheduler/internal/service"
 )
@@ -27,23 +28,23 @@ func NewExecutionHandler(executionService *service.ExecutionService) *ExecutionH
 // @Tags executions
 // @Produce json
 // @Param id path string true "Execution ID"
-// @Success 200 {object} Response{data=models.JobExecution}
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=models.JobExecution}
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/executions/{id} [get]
 func (h *ExecutionHandler) Get(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid execution ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid execution ID")
 	}
 
 	execution, err := h.executionService.GetByID(c.Context(), id)
 	if err != nil {
-		return NotFound(c, "Execution not found")
+		return response.NotFound(c, "Execution not found")
 	}
 
-	return Success(c, execution)
+	return response.OK(c, execution)
 }
 
 // List lists executions with filtering
@@ -57,8 +58,8 @@ func (h *ExecutionHandler) Get(c *fiber.Ctx) error {
 // @Param end_time query string false "Filter by end time (RFC3339)"
 // @Param page query int false "Page number" default(1)
 // @Param page_size query int false "Page size" default(20)
-// @Success 200 {object} Response{data=[]models.JobExecution}
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=[]models.JobExecution}
+// @Failure 500 {object} response.Response
 // @Router /api/v1/executions [get]
 func (h *ExecutionHandler) List(c *fiber.Ctx) error {
 	tenantID := getTenantID(c)
@@ -93,14 +94,14 @@ func (h *ExecutionHandler) List(c *fiber.Ctx) error {
 
 	result, err := h.executionService.List(c.Context(), filter)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return SuccessWithMeta(c, result.Executions, &Meta{
-		Page:       result.Page,
-		PageSize:   result.PageSize,
-		TotalCount: result.TotalCount,
-		HasMore:    result.HasMore,
+	return response.OKWithPagination(c, result.Executions, &response.Pagination{
+		Page:    result.Page,
+		PerPage: result.PageSize,
+		Total:   result.TotalCount,
+		HasNext: result.HasMore,
 	})
 }
 
@@ -111,25 +112,25 @@ func (h *ExecutionHandler) List(c *fiber.Ctx) error {
 // @Produce json
 // @Param job_id path string true "Job ID"
 // @Param limit query int false "Limit" default(10)
-// @Success 200 {object} Response{data=[]models.JobExecution}
-// @Failure 400 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response{data=[]models.JobExecution}
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/jobs/{job_id}/executions [get]
 func (h *ExecutionHandler) ListByJob(c *fiber.Ctx) error {
 	jobIDStr := c.Params("job_id")
 	jobID, err := uuid.Parse(jobIDStr)
 	if err != nil {
-		return BadRequest(c, "Invalid job ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid job ID")
 	}
 
 	limit := c.QueryInt("limit", 10)
 
 	executions, err := h.executionService.GetByJobID(c.Context(), jobID, limit)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, executions)
+	return response.OK(c, executions)
 }
 
 // Cancel cancels an execution
@@ -137,23 +138,23 @@ func (h *ExecutionHandler) ListByJob(c *fiber.Ctx) error {
 // @Description Cancel a pending or running execution
 // @Tags executions
 // @Param id path string true "Execution ID"
-// @Success 200 {object} Response
-// @Failure 400 {object} Response
-// @Failure 404 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/executions/{id}/cancel [post]
 func (h *ExecutionHandler) Cancel(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
-		return BadRequest(c, "Invalid execution ID")
+		return response.BadRequest(c, "BAD_REQUEST", "Invalid execution ID")
 	}
 
 	if err := h.executionService.Cancel(c.Context(), id); err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, map[string]bool{"cancelled": true})
+	return response.OK(c, map[string]bool{"cancelled": true})
 }
 
 // GetStats retrieves execution statistics
@@ -163,8 +164,8 @@ func (h *ExecutionHandler) Cancel(c *fiber.Ctx) error {
 // @Produce json
 // @Param start_time query string false "Start time (RFC3339)"
 // @Param end_time query string false "End time (RFC3339)"
-// @Success 200 {object} Response
-// @Failure 500 {object} Response
+// @Success 200 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/executions/stats [get]
 func (h *ExecutionHandler) GetStats(c *fiber.Ctx) error {
 	tenantID := getTenantID(c)
@@ -187,8 +188,8 @@ func (h *ExecutionHandler) GetStats(c *fiber.Ctx) error {
 
 	stats, err := h.executionService.GetStats(c.Context(), &tenantID, startTime, endTime)
 	if err != nil {
-		return InternalError(c, err.Error())
+		return response.InternalError(c, err.Error())
 	}
 
-	return Success(c, stats)
+	return response.OK(c, stats)
 }

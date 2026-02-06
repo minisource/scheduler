@@ -51,7 +51,8 @@ deps:
 
 # Generate swagger documentation (requires swag)
 swagger:
-	@swag init -g $(MAIN_PATH) -o ./docs
+	@echo "Generating Swagger documentation..."
+	@swag init -g cmd/main.go -o docs --parseDependency --parseInternal
 
 # Docker commands
 docker-build:

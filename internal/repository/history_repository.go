@@ -30,7 +30,7 @@ func (r *HistoryRepository) Upsert(ctx context.Context, history *models.JobHisto
 // IncrementSuccess increments the success count for a job on a date
 func (r *HistoryRepository) IncrementSuccess(ctx context.Context, jobID uuid.UUID, date time.Time, duration int64) error {
 	dateOnly := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
-	
+
 	var history models.JobHistory
 	err := r.db.WithContext(ctx).
 		Where("job_id = ? AND date = ?", jobID, dateOnly).
@@ -113,7 +113,7 @@ func (r *HistoryRepository) IncrementFailure(ctx context.Context, jobID uuid.UUI
 func (r *HistoryRepository) FindByJobID(ctx context.Context, jobID uuid.UUID, days int) ([]models.JobHistory, error) {
 	var history []models.JobHistory
 	startDate := time.Now().AddDate(0, 0, -days)
-	
+
 	err := r.db.WithContext(ctx).
 		Where("job_id = ? AND date >= ?", jobID, startDate).
 		Order("date DESC").
@@ -141,11 +141,11 @@ func (r *HistoryRepository) GetAggregatedStats(ctx context.Context, jobID *uuid.
 	}
 
 	var result struct {
-		TotalSuccess   int64
-		TotalFailure   int64
-		TotalDuration  int64
-		MinDuration    int64
-		MaxDuration    int64
+		TotalSuccess  int64
+		TotalFailure  int64
+		TotalDuration int64
+		MinDuration   int64
+		MaxDuration   int64
 	}
 
 	err := query.Select(`

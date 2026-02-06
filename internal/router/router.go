@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/gofiber/swagger"
 	"github.com/minisource/scheduler/internal/handler"
 )
 
@@ -30,6 +31,9 @@ func SetupRouter(app *fiber.App, h *Handlers) {
 		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization,X-Tenant-ID,X-Request-ID",
 	}))
+
+	// Swagger route
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Health check routes (no prefix)
 	app.Get("/health", h.Health.Health)

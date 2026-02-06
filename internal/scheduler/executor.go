@@ -35,7 +35,7 @@ func NewExecutor(cfg *config.Config, client *http.Client) *Executor {
 			Timeout: 30 * time.Second,
 		}
 	}
-	
+
 	return &Executor{
 		config: cfg,
 		client: client,
@@ -79,7 +79,7 @@ func (e *Executor) Execute(ctx context.Context, job *models.Job) (*ExecutionResu
 	// Check for error status codes
 	if resp.StatusCode >= 400 {
 		result.Error = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		return result, fmt.Errorf(result.Error)
+		return result, fmt.Errorf("%s", result.Error)
 	}
 
 	return result, nil
@@ -88,7 +88,7 @@ func (e *Executor) Execute(ctx context.Context, job *models.Job) (*ExecutionResu
 // buildRequest builds an HTTP request from a job
 func (e *Executor) buildRequest(ctx context.Context, job *models.Job) (*http.Request, error) {
 	var body io.Reader
-	
+
 	// Parse payload
 	if len(job.Payload) > 0 {
 		body = bytes.NewReader(job.Payload)

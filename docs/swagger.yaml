@@ -1,0 +1,982 @@
+basePath: /api/v1
+definitions:
+  github_com_minisource_scheduler_internal_models.AggregatedHistoryStats:
+    properties:
+      avg_duration:
+        type: number
+      max_duration:
+        type: integer
+      min_duration:
+        type: integer
+      success_rate:
+        type: number
+      total_duration:
+        type: integer
+      total_failure:
+        type: integer
+      total_success:
+        type: integer
+    type: object
+  github_com_minisource_scheduler_internal_models.CreateJobRequest:
+    properties:
+      description:
+        type: string
+      endpoint:
+        type: string
+      headers:
+        items:
+          type: integer
+        type: array
+      max_retries:
+        type: integer
+      metadata:
+        items:
+          type: integer
+        type: array
+      method:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      payload:
+        items:
+          type: integer
+        type: array
+      priority:
+        type: integer
+      retry_delay:
+        type: integer
+      schedule:
+        type: string
+      tags:
+        items:
+          type: integer
+        type: array
+      timeout:
+        type: integer
+      timezone:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobType'
+        enum:
+        - cron
+        - one_time
+        - interval
+    required:
+    - endpoint
+    - name
+    - schedule
+    - type
+    type: object
+  github_com_minisource_scheduler_internal_models.ExecutionStatus:
+    enum:
+    - pending
+    - running
+    - completed
+    - failed
+    - retrying
+    - cancelled
+    - timeout
+    type: string
+    x-enum-varnames:
+    - ExecutionStatusPending
+    - ExecutionStatusRunning
+    - ExecutionStatusCompleted
+    - ExecutionStatusFailed
+    - ExecutionStatusRetrying
+    - ExecutionStatusCancelled
+    - ExecutionStatusTimeout
+  github_com_minisource_scheduler_internal_models.Job:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      endpoint:
+        description: HTTP endpoint to call
+        type: string
+      fail_count:
+        type: integer
+      headers:
+        description: HTTP headers
+        items:
+          type: integer
+        type: array
+      id:
+        type: string
+      last_run_at:
+        type: string
+      max_retries:
+        description: Max retry attempts
+        type: integer
+      metadata:
+        description: Additional metadata
+        items:
+          type: integer
+        type: array
+      method:
+        description: HTTP method
+        type: string
+      name:
+        type: string
+      next_run_at:
+        type: string
+      payload:
+        description: Request body
+        items:
+          type: integer
+        type: array
+      priority:
+        description: 1-10, higher is more important
+        type: integer
+      retry_delay:
+        description: Delay between retries in seconds
+        type: integer
+      run_count:
+        type: integer
+      schedule:
+        description: Cron expression or interval
+        type: string
+      status:
+        $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobStatus'
+      tags:
+        description: Job tags for filtering
+        items:
+          type: integer
+        type: array
+      tenant_id:
+        type: string
+      timeout:
+        description: Timeout in seconds
+        type: integer
+      timezone:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobType'
+      updated_at:
+        type: string
+    type: object
+  github_com_minisource_scheduler_internal_models.JobExecution:
+    properties:
+      attempt:
+        description: Current attempt number
+        type: integer
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      duration_ms:
+        description: Duration in milliseconds
+        type: integer
+      error:
+        description: Error message
+        type: string
+      id:
+        type: string
+      job_id:
+        type: string
+      request:
+        description: Request sent
+        items:
+          type: integer
+        type: array
+      response:
+        description: Response received
+        items:
+          type: integer
+        type: array
+      scheduled_at:
+        type: string
+      started_at:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_minisource_scheduler_internal_models.ExecutionStatus'
+      status_code:
+        description: HTTP status code
+        type: integer
+      tenant_id:
+        type: string
+      trace_id:
+        description: Distributed trace ID
+        type: string
+      updated_at:
+        type: string
+      worker_id:
+        description: ID of worker executing
+        type: string
+    type: object
+  github_com_minisource_scheduler_internal_models.JobStats:
+    properties:
+      active_jobs:
+        type: integer
+      avg_duration_ms:
+        type: number
+      failures_today:
+        type: integer
+      jobs_by_status:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      jobs_by_type:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      paused_jobs:
+        type: integer
+      runs_today:
+        type: integer
+      success_rate:
+        type: number
+      total_jobs:
+        type: integer
+      total_runs:
+        type: integer
+    type: object
+  github_com_minisource_scheduler_internal_models.JobStatus:
+    enum:
+    - active
+    - paused
+    - disabled
+    - deleted
+    type: string
+    x-enum-varnames:
+    - JobStatusActive
+    - JobStatusPaused
+    - JobStatusDisabled
+    - JobStatusDeleted
+  github_com_minisource_scheduler_internal_models.JobType:
+    enum:
+    - cron
+    - one_time
+    - interval
+    type: string
+    x-enum-comments:
+      JobTypeCron: Recurring cron job
+      JobTypeInterval: Fixed interval job
+      JobTypeOneTime: One-time scheduled job
+    x-enum-descriptions:
+    - Recurring cron job
+    - One-time scheduled job
+    - Fixed interval job
+    x-enum-varnames:
+    - JobTypeCron
+    - JobTypeOneTime
+    - JobTypeInterval
+  github_com_minisource_scheduler_internal_models.UpdateJobRequest:
+    properties:
+      description:
+        type: string
+      endpoint:
+        type: string
+      headers:
+        items:
+          type: integer
+        type: array
+      max_retries:
+        type: integer
+      metadata:
+        items:
+          type: integer
+        type: array
+      method:
+        type: string
+      name:
+        type: string
+      payload:
+        items:
+          type: integer
+        type: array
+      priority:
+        type: integer
+      retry_delay:
+        type: integer
+      schedule:
+        type: string
+      tags:
+        items:
+          type: integer
+        type: array
+      timeout:
+        type: integer
+      timezone:
+        type: string
+    type: object
+  internal_handler.ErrorInfo:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  internal_handler.Meta:
+    properties:
+      has_more:
+        type: boolean
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_count:
+        type: integer
+    type: object
+  internal_handler.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/internal_handler.ErrorInfo'
+      meta:
+        $ref: '#/definitions/internal_handler.Meta'
+      success:
+        type: boolean
+    type: object
+host: localhost:5003
+info:
+  contact: {}
+  description: Job scheduling and task management service for Minisource
+  title: Scheduler Service API
+  version: "1.0"
+paths:
+  /api/v1/executions:
+    get:
+      description: List executions with optional filtering
+      parameters:
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by start time (RFC3339)
+        in: query
+        name: start_time
+        type: string
+      - description: Filter by end time (RFC3339)
+        in: query
+        name: end_time
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobExecution'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: List executions
+      tags:
+      - executions
+  /api/v1/executions/{id}:
+    get:
+      description: Get an execution by ID
+      parameters:
+      - description: Execution ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobExecution'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get an execution
+      tags:
+      - executions
+  /api/v1/executions/{id}/cancel:
+    post:
+      description: Cancel a pending or running execution
+      parameters:
+      - description: Execution ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Cancel an execution
+      tags:
+      - executions
+  /api/v1/executions/stats:
+    get:
+      description: Get statistics about executions
+      parameters:
+      - description: Start time (RFC3339)
+        in: query
+        name: start_time
+        type: string
+      - description: End time (RFC3339)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get execution statistics
+      tags:
+      - executions
+  /api/v1/history:
+    get:
+      description: Get execution history for a date range
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get history by date range
+      tags:
+      - history
+  /api/v1/history/stats:
+    get:
+      description: Get aggregated execution statistics
+      parameters:
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.AggregatedHistoryStats'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get aggregated history
+      tags:
+      - history
+  /api/v1/jobs:
+    get:
+      description: List jobs with optional filtering
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by type
+        in: query
+        name: type
+        type: string
+      - description: Filter by name
+        in: query
+        name: name
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: List jobs
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: Create a new scheduled job
+      parameters:
+      - description: Job creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_minisource_scheduler_internal_models.CreateJobRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Create a job
+      tags:
+      - jobs
+  /api/v1/jobs/{id}:
+    delete:
+      description: Soft-delete a job
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Delete a job
+      tags:
+      - jobs
+    get:
+      description: Get a job by ID
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get a job
+      tags:
+      - jobs
+    put:
+      consumes:
+      - application/json
+      description: Update an existing job
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Job update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_minisource_scheduler_internal_models.UpdateJobRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Update a job
+      tags:
+      - jobs
+  /api/v1/jobs/{id}/pause:
+    post:
+      description: Pause a job from executing
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Pause a job
+      tags:
+      - jobs
+  /api/v1/jobs/{id}/resume:
+    post:
+      description: Resume a paused job
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.Job'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Resume a job
+      tags:
+      - jobs
+  /api/v1/jobs/{id}/trigger:
+    post:
+      description: Manually trigger a job execution
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobExecution'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Trigger a job
+      tags:
+      - jobs
+  /api/v1/jobs/{job_id}/executions:
+    get:
+      description: List executions for a specific job
+      parameters:
+      - description: Job ID
+        in: path
+        name: job_id
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobExecution'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: List executions by job
+      tags:
+      - executions
+  /api/v1/jobs/{job_id}/history:
+    get:
+      description: Get execution history for a specific job
+      parameters:
+      - description: Job ID
+        in: path
+        name: job_id
+        required: true
+        type: string
+      - default: 30
+        description: Number of days
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get job history
+      tags:
+      - history
+  /api/v1/jobs/stats:
+    get:
+      description: Get statistics about jobs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/internal_handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_minisource_scheduler_internal_models.JobStats'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Get job statistics
+      tags:
+      - jobs
+  /health:
+    get:
+      description: Check service health
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Health check
+      tags:
+      - health
+  /live:
+    get:
+      description: Check if service is alive
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Liveness check
+      tags:
+      - health
+  /ready:
+    get:
+      description: Check if service is ready to accept traffic
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/internal_handler.Response'
+      summary: Readiness check
+      tags:
+      - health
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

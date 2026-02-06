@@ -153,7 +153,7 @@ func (r *ExecutionRepository) MarkAsRunning(ctx context.Context, id uuid.UUID, w
 // MarkAsCompleted marks an execution as completed
 func (r *ExecutionRepository) MarkAsCompleted(ctx context.Context, id uuid.UUID, statusCode int, response []byte) error {
 	now := time.Now()
-	
+
 	var execution models.JobExecution
 	if err := r.db.WithContext(ctx).First(&execution, "id = ?", id).Error; err != nil {
 		return err

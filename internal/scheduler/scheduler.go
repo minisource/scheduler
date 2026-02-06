@@ -17,20 +17,20 @@ import (
 
 // Scheduler is the core scheduler engine
 type Scheduler struct {
-	config          *config.Config
-	jobRepo         *repository.JobRepository
-	executionRepo   *repository.ExecutionRepository
-	historyRepo     *repository.HistoryRepository
-	locker          *DistributedLocker
-	executor        *Executor
-	workerPool      *WorkerPool
-	cronParser      cron.Parser
-	
-	ctx             context.Context
-	cancel          context.CancelFunc
-	wg              sync.WaitGroup
-	running         bool
-	mu              sync.RWMutex
+	config        *config.Config
+	jobRepo       *repository.JobRepository
+	executionRepo *repository.ExecutionRepository
+	historyRepo   *repository.HistoryRepository
+	locker        *DistributedLocker
+	executor      *Executor
+	workerPool    *WorkerPool
+	cronParser    cron.Parser
+
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+	running bool
+	mu      sync.RWMutex
 }
 
 // NewScheduler creates a new scheduler instance
@@ -42,7 +42,7 @@ func NewScheduler(
 	locker *DistributedLocker,
 ) *Scheduler {
 	parser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
-	
+
 	return &Scheduler{
 		config:        cfg,
 		jobRepo:       jobRepo,
@@ -60,7 +60,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 		s.mu.Unlock()
 		return fmt.Errorf("scheduler already running")
 	}
-	
+
 	s.ctx, s.cancel = context.WithCancel(ctx)
 	s.running = true
 	s.mu.Unlock()
@@ -116,7 +116,7 @@ func (s *Scheduler) IsRunning() bool {
 // schedulerLoop is the main scheduling loop
 func (s *Scheduler) schedulerLoop() {
 	defer s.wg.Done()
-	
+
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
@@ -189,7 +189,7 @@ func (s *Scheduler) processJob(task JobTask) {
 
 	// Execute the job
 	result, err := s.executor.Execute(ctx, &task.Job)
-	
+
 	if err != nil {
 		s.handleExecutionFailure(ctx, &task, err, result)
 		return
@@ -200,7 +200,7 @@ func (s *Scheduler) processJob(task JobTask) {
 	if result != nil {
 		response = result.Body
 	}
-	
+
 	statusCode := 0
 	if result != nil {
 		statusCode = result.StatusCode
@@ -222,7 +222,7 @@ func (s *Scheduler) processJob(task JobTask) {
 // handleExecutionFailure handles a failed execution
 func (s *Scheduler) handleExecutionFailure(ctx context.Context, task *JobTask, err error, result *ExecutionResult) {
 	errMsg := err.Error()
-	
+
 	var statusCode *int
 	if result != nil {
 		statusCode = &result.StatusCode
@@ -231,7 +231,7 @@ func (s *Scheduler) handleExecutionFailure(ctx context.Context, task *JobTask, e
 	// Check if we should retry
 	if task.Execution.Attempt < task.Job.MaxRetries {
 		s.executionRepo.MarkAsRetrying(ctx, task.Execution.ID, errMsg)
-		
+
 		// Schedule retry
 		retryDelay := time.Duration(s.config.Scheduler.RetryDelaySeconds) * time.Second
 		time.AfterFunc(retryDelay, func() {
@@ -250,7 +250,7 @@ func (s *Scheduler) handleExecutionFailure(ctx context.Context, task *JobTask, e
 // heartbeatLoop maintains scheduler heartbeat
 func (s *Scheduler) heartbeatLoop() {
 	defer s.wg.Done()
-	
+
 	interval := time.Duration(s.config.Scheduler.HeartbeatSeconds) * time.Second
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -268,7 +268,7 @@ func (s *Scheduler) heartbeatLoop() {
 // cleanupLoop cleans up old data periodically
 func (s *Scheduler) cleanupLoop() {
 	defer s.wg.Done()
-	
+
 	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
 

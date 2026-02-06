@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/minisource/scheduler/config"
+	_ "github.com/minisource/scheduler/docs" // Swagger docs
 	"github.com/minisource/scheduler/internal/database"
 	"github.com/minisource/scheduler/internal/handler"
 	"github.com/minisource/scheduler/internal/repository"
@@ -21,6 +22,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// @title Scheduler Service API
+// @version 1.0
+// @description Job scheduling and task management service for Minisource
+// @host localhost:5003
+// @BasePath /api/v1
+// @schemes http https
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	// Load configuration
 	cfg := config.LoadConfig()
@@ -39,7 +49,7 @@ func main() {
 
 	// Initialize Redis
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port),
+		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.DB,
 	})
@@ -94,7 +104,7 @@ func main() {
 
 	// Start server in goroutine
 	go func() {
-		addr := fmt.Sprintf(":%s", cfg.Server.Port)
+		addr := fmt.Sprintf(":%d", cfg.Server.Port)
 		log.Printf("Starting scheduler service on %s", addr)
 		if err := app.Listen(addr); err != nil {
 			log.Fatalf("Failed to start server: %v", err)

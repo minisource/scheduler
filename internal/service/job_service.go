@@ -15,9 +15,9 @@ import (
 
 // JobService handles job business logic
 type JobService struct {
-	jobRepo     *repository.JobRepository
-	scheduler   *scheduler.Scheduler
-	cronParser  cron.Parser
+	jobRepo    *repository.JobRepository
+	scheduler  *scheduler.Scheduler
+	cronParser cron.Parser
 }
 
 // NewJobService creates a new job service
@@ -26,7 +26,7 @@ func NewJobService(
 	sched *scheduler.Scheduler,
 ) *JobService {
 	parser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
-	
+
 	return &JobService{
 		jobRepo:    jobRepo,
 		scheduler:  sched,
